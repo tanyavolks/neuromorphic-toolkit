@@ -1,0 +1,34 @@
+# Core dependencies
+torch>=1.9.0
+torchvision>=0.10.0
+numpy>=1.19.0
+matplotlib>=3.3.0
+
+# SNN backend libraries (optional but recommended)
+spikingjelly>=0.0.0.0.14
+snntorch>=0.6.0
+
+# Brian2 for neuromorphic simulation (optional)
+brian2>=2.5.0
+
+# Visualization and analysis
+scipy>=1.7.0
+scikit-learn>=1.0.0
+
+# Development dependencies
+pytest>=6.0.0
+pytest-cov>=2.12.0
+black>=21.0.0
+flake8>=3.9.0
+
+# Documentation
+sphinx>=4.0.0
+sphinx-rtd-theme>=0.5.0
+
+# Data handling
+h5py>=3.1.0
+tqdm>=4.60.0
+
+# Optional neuromorphic data formats
+loihi-nx  # Intel Loihi support (optional)
+tonic>=1.0.0  # Neuromorphic datasets (optional)

@@ -19,9 +19,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Dict, Any
 
-from toolkit import SNNModel, SNNLayer, SpikeRasterPlot, AutoTuner, load_dataset
-from toolkit.tuning import TuningConfig, create_default_tuning_config
+from toolkit import SNNModel, SNNLayer, load_dataset
 from toolkit.utils import save_model_checkpoint, calculate_spike_metrics
+
+# Import optional components with fallbacks
+try:
+    from toolkit import SpikeRasterPlot, AutoTuner
+except ImportError:
+    SpikeRasterPlot = AutoTuner = None
+    print("Warning: Visualization and tuning components not available")
+
+try:
+    from toolkit.tuning import TuningConfig, create_default_tuning_config
+except ImportError:
+    TuningConfig = create_default_tuning_config = None
+    print("Warning: Tuning components not available")
 
 
 class MNISTSNNClassifier:
@@ -86,6 +98,10 @@ class MNISTSNNClassifier:
     def build_model(self):
         """Build the SNN model"""
         print("Building SNN model...")
+        
+        if SNNModel is None:
+            raise ImportError("SNNModel not available - check toolkit imports")
+        
         self.model = SNNModel(
             architecture=self.architecture,
             backend=self.backend,
@@ -100,6 +116,9 @@ class MNISTSNNClassifier:
     
     def train_epoch(self, train_loader, epoch: int, verbose: bool = True):
         """Train for one epoch"""
+        if self.model is None or self.optimizer is None:
+            raise RuntimeError("Model or optimizer not initialized")
+            
         self.model.train()
         train_loss = 0.0
         correct = 0
@@ -110,7 +129,8 @@ class MNISTSNNClassifier:
             data, targets = data.to(self.model.device), targets.to(self.model.device)
             
             # Reset model state
-            self.model.reset_state()
+            if hasattr(self.model, 'reset_state'):
+                self.model.reset_state()
             
             # Forward pass
             self.optimizer.zero_grad()

@@ -144,19 +144,21 @@ def encode_spikes(
     if torch is None:
         raise ImportError("PyTorch is required for spike encoding")
     
-    # Flatten spatial dimensions but keep channels
+    # Keep track of original shape for proper reshaping
     original_shape = data.shape
     if data.dim() > 1:
-        data = data.view(data.shape[0], -1) if data.dim() == 3 else data.flatten()
+        data_flat = data.view(data.shape[0], -1) if data.dim() == 3 else data.flatten()
+    else:
+        data_flat = data
     
     if encoding == "rate":
         # Rate coding: spike probability proportional to input intensity
-        spike_train = torch.rand(time_steps, *data.shape) < data.unsqueeze(0)
+        spike_train = torch.rand(time_steps, *original_shape) < data.unsqueeze(0)
         return spike_train.float()
     
     elif encoding == "temporal":
         # Temporal coding: spike timing based on input intensity
-        spike_train = torch.zeros(time_steps, *data.shape)
+        spike_train = torch.zeros(time_steps, *original_shape)
         spike_times = (data * (time_steps - 1)).long()
         
         for t in range(time_steps):
@@ -166,7 +168,7 @@ def encode_spikes(
     
     elif encoding == "latency":
         # Latency coding: first spike time inversely related to intensity
-        spike_train = torch.zeros(time_steps, *data.shape)
+        spike_train = torch.zeros(time_steps, *original_shape)
         
         # Avoid division by zero
         data_safe = torch.clamp(data, min=1e-7)
@@ -254,10 +256,17 @@ def calculate_spike_metrics(spike_data: torch.Tensor) -> Dict[str, float]:
     num_timesteps = spikes.shape[0]
     batch_size = spikes.shape[1] if spikes.ndim > 2 else 1
     
+    # Calculate active neurons correctly based on tensor dimensions
+    if spikes.ndim == 3:  # (time_steps, batch_size, num_neurons)
+        active_neurons_per_batch = np.any(spikes, axis=0)  # (batch_size, num_neurons)
+        active_neurons = np.sum(np.any(active_neurons_per_batch, axis=0))  # Count neurons active in any batch
+    else:  # (time_steps, num_neurons)
+        active_neurons = np.sum(np.any(spikes, axis=0))
+    
     metrics = {
         'total_spikes': float(total_spikes),
         'spike_rate': float(total_spikes / (num_timesteps * num_neurons * batch_size)),
-        'active_neurons': float(np.sum(np.any(spikes, axis=0))),
+        'active_neurons': float(active_neurons),
         'sparsity': float(1.0 - (total_spikes / spikes.size)),
     }
     

@@ -11,24 +11,38 @@ snntorch>=0.6.0
 # Brian2 for neuromorphic simulation (optional)
 brian2>=2.5.0
 
+# Configuration and serialization
+pyyaml>=5.4.0
+dataclasses>=0.6; python_version<"3.7"
+
 # Visualization and analysis
 scipy>=1.7.0
 scikit-learn>=1.0.0
+seaborn>=0.11.0
 
 # Development dependencies
 pytest>=6.0.0
 pytest-cov>=2.12.0
 black>=21.0.0
 flake8>=3.9.0
+mypy>=0.900
 
 # Documentation
 sphinx>=4.0.0
 sphinx-rtd-theme>=0.5.0
 
-# Data handling
+# Data handling and processing
 h5py>=3.1.0
 tqdm>=4.60.0
+pandas>=1.3.0
+
+# Logging and monitoring
+tensorboard>=2.7.0
+wandb>=0.12.0  # Optional for experiment tracking
 
 # Optional neuromorphic data formats
 loihi-nx  # Intel Loihi support (optional)
 tonic>=1.0.0  # Neuromorphic datasets (optional)
+
+# Performance optimization
+numba>=0.56.0  # Optional for JIT compilation

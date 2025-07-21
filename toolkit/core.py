@@ -9,8 +9,10 @@ from typing import Optional, Dict, Any, List
 from abc import ABC, abstractmethod
 
 try:
-    import spikingjelly.activation_based as sj
+    import spikingjelly.activation_based.neuron as sj_neuron
+    sj = True
 except ImportError:
+    sj_neuron = None
     sj = None
 
 try:
@@ -47,6 +49,19 @@ class SNNLayer(nn.Module):
         **kwargs
     ):
         super().__init__()
+        
+        # Input validation
+        if input_size <= 0:
+            raise ValueError(f"input_size must be positive, got {input_size}")
+        if output_size <= 0:
+            raise ValueError(f"output_size must be positive, got {output_size}")
+        if threshold <= 0:
+            raise ValueError(f"threshold must be positive, got {threshold}")
+        if not 0 < decay < 1:
+            raise ValueError(f"decay must be between 0 and 1, got {decay}")
+        if neuron_type not in ["LIF"]:
+            raise ValueError(f"Unsupported neuron type: {neuron_type}")
+        
         self.input_size = input_size
         self.output_size = output_size
         self.backend = backend
@@ -62,7 +77,7 @@ class SNNLayer(nn.Module):
         if self.backend == SNNBackend.SPIKING_JELLY and sj is not None:
             self.linear = nn.Linear(self.input_size, self.output_size)
             if self.neuron_type == "LIF":
-                self.neuron = sj.neuron.LIFNode(
+                self.neuron = sj_neuron.LIFNode(
                     tau=2.0, 
                     v_threshold=self.threshold,
                     v_reset=0.0
